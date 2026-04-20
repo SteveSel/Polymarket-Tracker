@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Market {
+  id          String   @id // We will use the Polymarket 'conditionId' or 'market slug' here
+  question    String   // e.g., "Will Bitcoin hit $100k in 2024?"
+  status      String   @default("ACTIVE") // ACTIVE, RESOLVED
+  endDate     DateTime? 
+  
+  // A market can have many trades associated with it
+  trades      Trade[]
+}
+
+model Trade {
+  id        String   @id @default(uuid())
+  marketId  String
+  market    Market   @relation(fields: [marketId], references: [id])
+  
+  type      String   // "BUY" or "SELL"
+  side      String   // "YES" or "NO"
+  price     Float    // Cost per share (e.g., 0.65)
+  shares    Float    // Number of shares
+  timestamp DateTime @default(now())
+}
+
+model PortfolioSnapshot {
+  id           String   @id @default(uuid())
+  date         DateTime @default(now())
+  totalValue   Float    // Cash + Current value of active positions
+  cashBalance  Float    // Available USDC
+  openExposure Float    // Total money currently tied up in active bets
+}
+
+model Whale {
+  address   String   @id
+  alias     String?  // Un apodo opcional (ej. "Ballena Cripto 1")
+  createdAt DateTime @default(now())
+}
